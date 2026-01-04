@@ -2,3 +2,6 @@ Hello from GitHub
 Jenkins will read this file
 Jenkins triggered via webhook
 No manual build
+This change is from Git Bash
+DevOps engineer workflow
+
