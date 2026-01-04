@@ -1,2 +1,4 @@
 Hello from GitHub
 Jenkins will read this file
+Jenkins triggered via webhook
+No manual build
