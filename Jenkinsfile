@@ -1,10 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "jenkins-learning"
+        ENVIRONMENT = "dev"
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Print Env') {
             steps {
-                echo 'Code is already checked out by Jenkins'
+                echo "App Name: ${APP_NAME}"
+                echo "Environment: ${ENVIRONMENT}"
             }
         }
 
