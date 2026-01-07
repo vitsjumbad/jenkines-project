@@ -7,16 +7,11 @@ pipeline {
     }
 
     stages {
-        stage('Print Env') {
+        stage('Use Secret') {
             steps {
-                echo "App Name: ${APP_NAME}"
-                echo "Environment: ${ENVIRONMENT}"
-            }
-        }
-
-        stage('Read File') {
-            steps {
-                bat 'type message.txt'
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
+                    bat 'echo Token is $TOKEN'
+                }
             }
         }
     }
