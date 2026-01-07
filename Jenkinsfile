@@ -7,12 +7,39 @@ pipeline {
     }
 
     stages {
-        stage('Use Secret') {
+
+        stage('Validate') {
             steps {
-                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
-                    bat 'echo Token is $TOKEN'
-                }
+                echo "Validating environment"
+                echo "App: ${APP_NAME}"
+                echo "Env: ${ENVIRONMENT}"
             }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Build stage started"
+                bat 'echo Building application...'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests"
+                bat 'type message.txt'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully ✅"
+        }
+        failure {
+            echo "Pipeline failed ❌"
+        }
+        always {
+            echo "Pipeline finished (success or failure)"
         }
     }
 }
