@@ -8,6 +8,13 @@ pipeline {
 
     stages {
 
+        stage('Branch Info') {
+            steps {
+                echo "Branch name: ${env.BRANCH_NAME}"
+           }
+        }
+        
+        
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
