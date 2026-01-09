@@ -10,22 +10,23 @@ pipeline {
 
         stage('Validate') {
             steps {
-                echo "Validating environment"
                 echo "App: ${APP_NAME}"
                 echo "Env: ${ENVIRONMENT}"
             }
         }
 
-        stage('Build') {
+        stage('Use Secret') {
             steps {
-                echo "Build stage started"
-                bat 'echo Building application...'
+                withCredentials([
+                    string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')
+                ]) {
+                    bat 'echo Token is available'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running tests"
                 bat 'type message.txt'
             }
         }
@@ -33,14 +34,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completed successfully ✅"
+            echo "Pipeline SUCCESS"
         }
         failure {
-            echo "Pipeline failed ❌"
-        }
-        always {
-            echo "Pipeline finished (success or failure)"
+            echo "Pipeline FAILED"
         }
     }
 }
-
