@@ -29,6 +29,17 @@ pipeline {
         echo "To: ${env.CHANGE_TARGET}"
     }
   }
+    stage('PR Quality Gate') {
+    when {
+        expression {
+            return env.CHANGE_ID != null
+        }
+    }
+    steps {
+        echo "Running PR quality gate"
+        error "Failing PR intentionally to test CI gate"
+    }
+  }
 
     stage('Use Secret') {
         when {
