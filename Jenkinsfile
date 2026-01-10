@@ -15,6 +15,20 @@ pipeline {
             echo "Branch: ${env.BRANCH_NAME}"
         }
     }
+    
+     stage('PR Check') {
+    when {
+        expression {
+            return env.CHANGE_ID != null
+        }
+    }
+    steps {
+        echo "Running PR checks"
+        echo "PR ID: ${env.CHANGE_ID}"
+        echo "From: ${env.CHANGE_BRANCH}"
+        echo "To: ${env.CHANGE_TARGET}"
+    }
+  }
 
     stage('Use Secret') {
         when {
