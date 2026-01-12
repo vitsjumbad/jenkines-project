@@ -8,36 +8,47 @@ pipeline {
 
     stages {
 
-    stage('Validate') {
-        steps {
-            echo "App: ${APP_NAME}"
-            echo "Env: ${ENVIRONMENT}"
-            echo "Branch: ${env.BRANCH_NAME}"
+        stage('Validate') {
+            steps {
+                echo "App: ${APP_NAME}"
+                echo "Env: ${ENVIRONMENT}"
+                echo "Branch: ${env.BRANCH_NAME}"
+            }
         }
-    }
 
-    stage('Use Secret') {
-        when {
-            branch 'main'
+        stage('PR Quality Gate') {
+            when {
+                not {
+                    branch 'main'
+                }
+            }
+            steps {
+                echo "Running PR quality checks on feature branch"
+            }
         }
-        steps {
-            withCredentials([
-                string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')
-            ]) {
-                bat 'echo Secret available only on main'
+
+        stage('Use Secret') {
+            when {
+                branch 'main'
+            }
+            steps {
+                withCredentials([
+                    string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')
+                ]) {
+                    echo "Secret accessed safely on main branch"
+                }
+            }
+        }
+
+        stage('Test') {
+            when {
+                branch 'main'
+            }
+            steps {
+                bat 'type message.txt'
             }
         }
     }
-
-    stage('Test') {
-        when {
-            branch 'main'
-        }
-        steps {
-            bat 'type message.txt'
-        }
-    }
-  }
 
     post {
         success {
