@@ -1,9 +1,22 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select environment'
+        )
+
+        booleanParam(
+            name: 'RUN_TESTS',
+            defaultValue: true,
+            description: 'Run tests or not'
+        )
+    }
+
     environment {
         APP_NAME = "jenkins-learning"
-        ENVIRONMENT = "dev"
     }
 
     stages {
@@ -11,40 +24,18 @@ pipeline {
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
-                echo "Env: ${ENVIRONMENT}"
+                echo "Environment: ${params.ENV}"
+                echo "Run tests: ${params.RUN_TESTS}"
                 echo "Branch: ${env.BRANCH_NAME}"
-            }
-        }
-
-        stage('PR Quality Gate') {
-            when {
-                not {
-                    branch 'main'
-                }
-            }
-            steps {
-                echo "Running PR quality checks on feature branch"
-            }
-        }
-
-        stage('Use Secret') {
-            when {
-                branch 'main'
-            }
-            steps {
-                withCredentials([
-                    string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')
-                ]) {
-                    echo "Secret accessed safely on main branch"
-                }
             }
         }
 
         stage('Test') {
             when {
-                branch 'main'
+                expression { params.RUN_TESTS == true }
             }
             steps {
+                echo "Running tests"
                 bat 'type message.txt'
             }
         }
