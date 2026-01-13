@@ -30,13 +30,17 @@ pipeline {
             }
         }
      stage('Approval for Prod') {
-            when {
-                expression { params.ENV == 'prod' }
-               }
-            steps {
-                input message: 'Approve deployment to PROD?', ok: 'Deploy'
+         when {
+            allOf {
+                branch 'main'
+                  expression { params.ENV == 'prod' }
+                }
+            }
+        steps {
+              input message: 'Approve deployment to PROD?', ok: 'Deploy'
             }
         }
+
         stage('Test') {
             when {
                 expression { params.RUN_TESTS == true }
