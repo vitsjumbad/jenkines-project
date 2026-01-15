@@ -24,30 +24,60 @@ pipeline {
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
-                echo "Environment: ${params.ENV}"
-                echo "Run tests: ${params.RUN_TESTS}"
                 echo "Branch: ${env.BRANCH_NAME}"
-            }
-        }
-     stage('Approval for Prod') {
-         when {
-            allOf {
-                branch 'main'
-                  expression { params.ENV == 'prod' }
-                }
-            }
-        steps {
-              input message: 'Approve deployment to PROD?', ok: 'Deploy'
+                echo "Target ENV: ${params.ENV}"
             }
         }
 
-        stage('Test') {
+        /* ---------------- DEV DEPLOY ---------------- */
+        stage('Deploy to DEV') {
             when {
-                expression { params.RUN_TESTS == true }
+                allOf {
+                    not { branch 'main' }
+                    expression { params.ENV == 'dev' }
+                }
             }
             steps {
-                echo "Running tests"
-                bat 'type message.txt'
+                echo "Deploying to DEV from FEATURE branch"
+            }
+        }
+
+        /* ---------------- QA DEPLOY ---------------- */
+        stage('Deploy to QA') {
+            when {
+                allOf {
+                    not { branch 'main' }
+                    expression { params.ENV == 'qa' }
+                }
+            }
+            steps {
+                echo "Deploying to QA from FEATURE branch"
+            }
+        }
+
+        /* ---------------- PROD APPROVAL ---------------- */
+        stage('Approval for PROD') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { params.ENV == 'prod' }
+                }
+            }
+            steps {
+                input message: 'Approve PROD deployment?', ok: 'Deploy'
+            }
+        }
+
+        /* ---------------- PROD DEPLOY ---------------- */
+        stage('Deploy to PROD') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { params.ENV == 'prod' }
+                }
+            }
+            steps {
+                echo "🚀 Deploying to PROD from MAIN branch"
             }
         }
     }
@@ -55,9 +85,6 @@ pipeline {
     post {
         success {
             echo "Pipeline SUCCESS"
-        }
-        failure {
-            echo "Pipeline FAILED"
         }
     }
 }
