@@ -21,6 +21,17 @@ pipeline {
 
     stages {
 
+        stage('Guardrail Check') {
+            steps {
+              script {
+                 if (env.BRANCH_NAME != 'main' && params.ENV == 'prod') {
+                     error "❌ PROD deployment is allowed only from main branch"
+                 }
+               }
+            }    
+        }
+ 
+        
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
