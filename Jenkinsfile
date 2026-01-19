@@ -92,15 +92,14 @@ pipeline {
         stage('Deploy to PROD') {
             when {
                 allOf {
-                    branch 'main'
-                    expression { params.ENV == 'prod' }
-                }
-            }
-            steps {
-                echo "🚀 Deploying to PROD from MAIN branch"
-            }
+                       buildingTag()
+                        expression { params.ENV == 'prod' }
+                     }
+                 }
+                steps {
+                    echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+               }
         }
-    }
 
     post {
         success {
