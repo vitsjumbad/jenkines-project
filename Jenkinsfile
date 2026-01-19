@@ -67,18 +67,27 @@ pipeline {
         }
 
         /* ---------------- PROD APPROVAL ---------------- */
-        stage('Approval for PROD') {
+        stage('Approval for Prod') {
             when {
                 allOf {
-                    branch 'main'
-                    expression { params.ENV == 'prod' }
-                }
-            }
+                        buildingTag()
+                         expression { params.ENV == 'prod' }
+                      }
+                 }
             steps {
-                input message: 'Approve PROD deployment?', ok: 'Deploy'
+                  input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
             }
         }
 
+        stage('Release Info') {
+            when {
+                   buildingTag()
+                 }
+             steps {
+                echo "Deploying RELEASE TAG: ${env.TAG_NAME}"
+               }
+        }
+        
         /* ---------------- PROD DEPLOY ---------------- */
         stage('Deploy to PROD') {
             when {
