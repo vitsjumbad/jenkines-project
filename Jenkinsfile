@@ -24,8 +24,8 @@ pipeline {
         stage('Guardrail Check') {
             steps {
               script {
-                 if (env.BRANCH_NAME != 'main' && params.ENV == 'prod') {
-                     error "❌ PROD deployment is allowed only from main branch"
+                 if (params.ENV == 'prod' && !buildingTag()) {
+                     error "❌ PROD deployment is allowed ONLY from Git TAGS"
                  }
                }
             }    
@@ -67,32 +67,43 @@ pipeline {
         }
 
         /* ---------------- PROD APPROVAL ---------------- */
-        stage('Approval for PROD') {
+        stage('Approval for Prod') {
             when {
                 allOf {
-                    branch 'main'
-                    expression { params.ENV == 'prod' }
-                }
-            }
+                        buildingTag()
+                         expression { params.ENV == 'prod' }
+                      }
+                 }
             steps {
-                input message: 'Approve PROD deployment?', ok: 'Deploy'
+                  input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
             }
         }
 
+        stage('Release Info') {
+            when {
+                   buildingTag()
+                 }
+             steps {
+                echo "Deploying RELEASE TAG: ${env.TAG_NAME}"
+               }
+        }
+        
         /* ---------------- PROD DEPLOY ---------------- */
         stage('Deploy to PROD') {
             when {
                 allOf {
-                    branch 'main'
-                    expression { params.ENV == 'prod' }
-                }
-            }
-            steps {
-                echo "🚀 Deploying to PROD from MAIN branch"
-            }
+                       buildingTag()
+                        expression { params.ENV == 'prod' }
+                     }
+                 }
+                steps {
+                    echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+               }
         }
-    }
+      
 
+    }
+      
     post {
         success {
             echo "Pipeline SUCCESS"
