@@ -26,12 +26,16 @@ pipeline {
               script {
                  if (params.ENV == 'prod' && !buildingTag()) {
                      error "❌ PROD deployment is allowed ONLY from Git TAGS"
-                 }
-               }
+                }
+                if (buildingTag() && params.ENV != 'prod') {
+                error "❌ TAG builds are ONLY for PROD deployments"
+
+              }
             }    
         }
  
-        
+        }
+
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
@@ -41,17 +45,18 @@ pipeline {
         }
 
         /* ---------------- DEV DEPLOY ---------------- */
-        stage('Deploy to DEV') {
-            when {
-                allOf {
-                    not { branch 'main' }
-                    expression { params.ENV == 'dev' }
-                }
+        stage('Deploy to PROD') {
+             when {
+                 allOf {
+                      buildingTag()
+                           expression { params.ENV == 'prod' }
+                         }
+                     }
+              steps {
+                   echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+               }
             }
-            steps {
-                echo "Deploying to DEV from FEATURE branch"
-            }
-        }
+
 
         /* ---------------- QA DEPLOY ---------------- */
         stage('Deploy to QA') {
