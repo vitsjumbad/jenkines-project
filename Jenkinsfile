@@ -26,12 +26,12 @@ pipeline {
             steps {
                 script {
 
-                    // ❌ PROD must ONLY come from TAG
+            // PROD must come ONLY from TAG
                     if (params.ENV == 'prod' && !buildingTag()) {
                         error "❌ PROD deployment is allowed ONLY from Git TAGS"
                     }
 
-                    // ❌ TAG builds must ONLY deploy to PROD
+            // TAG builds must deploy ONLY to PROD
                     if (buildingTag() && params.ENV != 'prod') {
                         error "❌ Git TAGS can deploy ONLY to PROD"
                     }
