@@ -5,7 +5,7 @@ pipeline {
         choice(
             name: 'ENV',
             choices: ['dev', 'qa', 'prod'],
-            description: 'Select environment'
+            description: 'Select deployment environment'
         )
 
         booleanParam(
@@ -21,97 +21,106 @@ pipeline {
 
     stages {
 
+        /* ---------------- GUARDRAIL ---------------- */
         stage('Guardrail Check') {
             steps {
-              script {
-                 if (params.ENV == 'prod' && !buildingTag()) {
-                     error "❌ PROD deployment is allowed ONLY from Git TAGS"
+                script {
+
+                    // ❌ PROD must ONLY come from TAG
+                    if (params.ENV == 'prod' && !buildingTag()) {
+                        error "❌ PROD deployment is allowed ONLY from Git TAGS"
+                    }
+
+                    // ❌ TAG builds must ONLY deploy to PROD
+                    if (buildingTag() && params.ENV != 'prod') {
+                        error "❌ Git TAGS can deploy ONLY to PROD"
+                    }
                 }
-                if (buildingTag() && params.ENV != 'prod') {
-                error "❌ TAG builds are ONLY for PROD deployments"
-
-              }
-            }    
-        }
- 
+            }
         }
 
+        /* ---------------- VALIDATION ---------------- */
         stage('Validate') {
             steps {
-                echo "App: ${APP_NAME}"
-                echo "Branch: ${env.BRANCH_NAME}"
-                echo "Target ENV: ${params.ENV}"
+                echo "App Name     : ${APP_NAME}"
+                echo "Branch Name  : ${env.BRANCH_NAME}"
+                echo "Tag Name     : ${env.TAG_NAME ?: 'N/A'}"
+                echo "Target ENV   : ${params.ENV}"
+                echo "Run Tests    : ${params.RUN_TESTS}"
+            }
+        }
+
+        /* ---------------- TESTS ---------------- */
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS }
+            }
+            steps {
+                echo "Running tests..."
+                bat 'type message.txt'
             }
         }
 
         /* ---------------- DEV DEPLOY ---------------- */
-        stage('Deploy to PROD') {
-             when {
-                 allOf {
-                      buildingTag()
-                           expression { params.ENV == 'prod' }
-                         }
-                     }
-              steps {
-                   echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
-               }
+        stage('Deploy to DEV') {
+            when {
+                allOf {
+                    not { buildingTag() }
+                    expression { params.ENV == 'dev' }
+                }
             }
-
+            steps {
+                echo "🚧 Deploying to DEV from feature branch"
+            }
+        }
 
         /* ---------------- QA DEPLOY ---------------- */
         stage('Deploy to QA') {
             when {
                 allOf {
-                    not { branch 'main' }
+                    not { buildingTag() }
                     expression { params.ENV == 'qa' }
                 }
             }
             steps {
-                echo "Deploying to QA from FEATURE branch"
+                echo "🧪 Deploying to QA from feature branch"
             }
         }
 
         /* ---------------- PROD APPROVAL ---------------- */
-        stage('Approval for Prod') {
+        stage('Manual Approval for PROD') {
             when {
                 allOf {
-                        buildingTag()
-                         expression { params.ENV == 'prod' }
-                      }
-                 }
+                    buildingTag()
+                    expression { params.ENV == 'prod' }
+                }
+            }
             steps {
-                  input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
+                input message: "Approve PROD deployment for release ${env.TAG_NAME}",
+                      ok: "Deploy"
             }
         }
 
-        stage('Release Info') {
-            when {
-                   buildingTag()
-                 }
-             steps {
-                echo "Deploying RELEASE TAG: ${env.TAG_NAME}"
-               }
-        }
-        
         /* ---------------- PROD DEPLOY ---------------- */
         stage('Deploy to PROD') {
             when {
                 allOf {
-                       buildingTag()
-                        expression { params.ENV == 'prod' }
-                     }
-                 }
-                steps {
-                    echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
-               }
+                    buildingTag()
+                    expression { params.ENV == 'prod' }
+                }
+            }
+            steps {
+                echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+            }
         }
-      
-
     }
-      
+
     post {
         success {
-            echo "Pipeline SUCCESS"
+            echo "✅ Pipeline completed successfully"
+        }
+        failure {
+            echo "❌ Pipeline failed"
         }
     }
 }
