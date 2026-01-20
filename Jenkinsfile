@@ -24,7 +24,7 @@ pipeline {
         stage('Guardrail Check') {
             steps {
               script {
-                 if (env.BRANCH_NAME != 'main' && params.ENV == 'prod') {
+                 if (params.ENV == 'prod' && !env.TAG_NAME) {
                      error "❌ PROD deployment is allowed only from main branch"
                  }
                }
@@ -100,7 +100,10 @@ pipeline {
                     echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
                }
         }
+      
 
+    }
+      
     post {
         success {
             echo "Pipeline SUCCESS"
