@@ -13,16 +13,18 @@ pipeline {
         APP_NAME = "jenkins-learning"
     }
 
-    stages {
-
         stage('Guardrail Check') {
             steps {
-                script {
-                    if (params.ENV == 'prod' && !env.TAG_NAME) {
-                        error "❌ PROD deployment is allowed only from a Git TAG"
-                    }
-                }
-            }
+               script {
+                if (env.TAG_NAME && env.BRANCH_NAME) {
+                error "❌ Invalid state: both TAG and BRANCH detected"
+                 }
+
+                 if (!env.TAG_NAME && params.ENV == 'prod') {
+                error "❌ PROD deployments must come from a TAG"
+                 }
+             }
+           }
         }
 
         stage('Validate') {
@@ -61,31 +63,24 @@ pipeline {
         }
 
         /* ---------------- PROD APPROVAL ---------------- */
-        stage('Approval for PROD') {
+         stage('Approval for PROD') {
             when {
-                allOf {
-                    buildingTag()
-                    expression { params.ENV == 'prod' }
-                }
-            }
+                buildingTag()
+                 }
             steps {
-                input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
+                  input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
+                 }
             }
-        }
 
         /* ---------------- PROD ---------------- */
         stage('Deploy to PROD') {
-            when {
-                allOf {
-                    buildingTag()
-                    expression { params.ENV == 'prod' }
-                }
-            }
+             when {
+                buildingTag()
+                 }
             steps {
-                echo "🚀 Deploying to PROD from TAG ${env.TAG_NAME}"
-            }
+                echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+              }
         }
-    }
 
     post {
         success {
