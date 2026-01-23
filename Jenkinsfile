@@ -20,14 +20,9 @@ pipeline {
             steps {
                 script {
                     // Impossible state safety
-                    if (env.TAG_NAME && env.BRANCH_NAME) {
-                        error "❌ Invalid state: both TAG and BRANCH detected"
-                    }
-
-                    // PROD must come only from TAG
-                    if (!env.TAG_NAME && params.ENV == 'prod') {
-                        error "❌ PROD deployments must come from a Git TAG"
-                    }
+                    if (!buildingTag() && params.ENV == 'prod') {
+                        error "❌ PROD deployments must come from a RELEASE TAG"
+                       }                                 
                 }
             }
         }
