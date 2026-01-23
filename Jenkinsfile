@@ -13,20 +13,26 @@ pipeline {
         APP_NAME = "jenkins-learning"
     }
 
+    stages {
+
+        /* ---------------- GUARDRAIL ---------------- */
         stage('Guardrail Check') {
             steps {
-               script {
-                if (env.TAG_NAME && env.BRANCH_NAME) {
-                error "❌ Invalid state: both TAG and BRANCH detected"
-                 }
+                script {
+                    // Impossible state safety
+                    if (env.TAG_NAME && env.BRANCH_NAME) {
+                        error "❌ Invalid state: both TAG and BRANCH detected"
+                    }
 
-                 if (!env.TAG_NAME && params.ENV == 'prod') {
-                error "❌ PROD deployments must come from a TAG"
-                 }
-             }
-           }
+                    // PROD must come only from TAG
+                    if (!env.TAG_NAME && params.ENV == 'prod') {
+                        error "❌ PROD deployments must come from a Git TAG"
+                    }
+                }
+            }
         }
 
+        /* ---------------- VALIDATE ---------------- */
         stage('Validate') {
             steps {
                 echo "App: ${APP_NAME}"
@@ -63,24 +69,25 @@ pipeline {
         }
 
         /* ---------------- PROD APPROVAL ---------------- */
-         stage('Approval for PROD') {
+        stage('Approval for PROD') {
             when {
                 buildingTag()
-                 }
-            steps {
-                  input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
-                 }
             }
+            steps {
+                input message: "Approve PROD deployment for tag ${env.TAG_NAME}", ok: "Deploy"
+            }
+        }
 
         /* ---------------- PROD ---------------- */
         stage('Deploy to PROD') {
-             when {
+            when {
                 buildingTag()
-                 }
+            }
             steps {
                 echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
-              }
+            }
         }
+    }
 
     post {
         success {
