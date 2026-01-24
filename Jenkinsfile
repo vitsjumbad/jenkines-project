@@ -36,6 +36,17 @@ pipeline {
                 echo "Target ENV: ${params.ENV}"
             }
         }
+        stage('Build Artifact') {
+            steps {
+               echo "Building artifact..."
+               bat '''
+               echo Build Version: %TAG_NAME% > artifact.txt
+               echo Environment: %ENV% >> artifact.txt
+               '''
+               archiveArtifacts artifacts: 'artifact.txt', fingerprint: true
+            }
+        }
+
 
         /* ---------------- DEV ---------------- */
         stage('Deploy to DEV') {
