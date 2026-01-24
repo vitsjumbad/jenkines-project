@@ -8,3 +8,4 @@ Hi
 Hello
 This change is from feature branch
 Trigger feature branch
+echo "Release version v1.0.5"
