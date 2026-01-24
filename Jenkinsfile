@@ -79,7 +79,7 @@ pipeline {
                 buildingTag()
             }
             steps {
-                echo "🚀 Deploying to PROD from RELEASE TAG ${env.TAG_NAME}"
+                echo "🚀 HOTFIX DEPLOYMENT to PROD from TAG ${env.TAG_NAME}"
             }
         }
     }
