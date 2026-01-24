@@ -37,13 +37,16 @@ pipeline {
             }
         }
         stage('Build Artifact') {
+            when {
+                buildingTag()
+                }
             steps {
-               echo "Building artifact..."
-               bat '''
-               echo Build Version: %TAG_NAME% > artifact.txt
-               echo Environment: %ENV% >> artifact.txt
-               '''
-               archiveArtifacts artifacts: 'artifact.txt', fingerprint: true
+                echo "Building artifact for release ${env.TAG_NAME}"
+                bat """
+                echo Build Version: ${env.TAG_NAME} > artifact.txt
+                echo Environment: ${params.ENV} >> artifact.txt
+                """
+                archiveArtifacts artifacts: 'artifact.txt', fingerprint: true
             }
         }
 
