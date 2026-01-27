@@ -32,18 +32,18 @@ pipeline {
         }
         
         stage('Prevent Tag Rebuild') {
-          when {
-               buildingTag()
-               }
-          steps {
-             script {
-             def previousBuild = currentBuild.rawBuild.getPreviousBuild()
-                if (previousBuild != null && previousBuild.getResult() == hudson.model.Result.SUCCESS) {
-                 error "❌ This tag was already built successfully. Rebuilding release tags is not allowed."
-              }
+            when {
+                  buildingTag()
+                 }
+            steps {
+                script {
+                  if (fileExists("artifact.txt")) {
+                    error "❌ This release was already built. Rebuilding tags is not allowed."
+                }
+             }
            }
-         }
-        }
+        } 
+
 
         /* ---------------- VALIDATE ---------------- */
         stage('Validate') {
